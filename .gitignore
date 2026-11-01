@@ -1,0 +1,14 @@
+build/
+.tools/
+.venv/
+__pycache__/
+*.pyc
+examples/standalone/sdkconfig
+examples/standalone/sdkconfig.old
+examples/standalone/build/
+examples/standalone/managed_components/
+*.bin
+*.elf
+*.map
+backup*.bin
+work/

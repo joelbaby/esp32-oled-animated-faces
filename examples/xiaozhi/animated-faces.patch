@@ -1,0 +1,310 @@
+--- a/main/display/oled_display.h
++++ b/main/display/oled_display.h
+@@ -2,6 +2,8 @@
+ #define OLED_DISPLAY_H
+ 
+ #include "lvgl_display.h"
++#include "animated_faces.h"
++#include <string>
+ 
+ #include <esp_lcd_panel_io.h>
+ #include <esp_lcd_panel_ops.h>
+@@ -21,6 +23,17 @@
+     lv_obj_t* emotion_label_ = nullptr;
+     lv_obj_t* chat_message_label_ = nullptr;
+ 
++    animated_faces::Player faces_player_;
++    lv_obj_t* faces_canvas_ = nullptr;
++    lv_timer_t* faces_timer_ = nullptr;
++    alignas(4) uint8_t faces_buffer_[8 + animated_faces::FrameBytes] = {};
++    std::string faces_live_emotion_ = "neutral";
++    uint32_t faces_preview_started_ = 0;
++    uint32_t faces_preview_duration_ = 0;
++    bool faces_visible_ = true;
++    bool faces_power_save_ = false;
++    void UpdateAnimatedFaces();
++
+     virtual bool Lock(int timeout_ms = 0) override;
+     virtual void Unlock() override;
+ 
+@@ -33,6 +46,10 @@
+     ~OledDisplay();
+ 
+     virtual void SetupUI() override;
++    // Call these from normal application code; they acquire the display lock.
++    // Preview lasts 3 seconds, then restores the most recent cloud emotion.
++    bool PreviewAnimatedExpression(const char* expression);
++    void SetAnimatedFacesVisible(bool visible);
+     virtual void SetChatMessage(const char* role, const char* content) override;
+     virtual void RemoveChatMessage(const char* role, const char* content) override;
+     virtual bool SetEmotion(const char* emotion) override;
+--- a/main/display/oled_display.cc
++++ b/main/display/oled_display.cc
+@@ -5,6 +5,7 @@
+ #include "settings.h"
+ 
+ #include <algorithm>
++#include <cstring>
+ #include <string>
+ 
+ #include <esp_err.h>
+@@ -103,6 +104,14 @@
+ }
+ 
+ OledDisplay::~OledDisplay() {
++    // Wait for the LVGL task before removing this object's callback and canvas.
++    // Zero means wait indefinitely in the pinned port. Never continue unlocked.
++    if (faces_timer_ || faces_canvas_) {
++        ESP_ERROR_CHECK(Lock(0) ? ESP_OK : ESP_ERR_TIMEOUT);
++        if (faces_timer_) { lv_timer_delete(faces_timer_); faces_timer_ = nullptr; }
++        if (faces_canvas_) { lv_obj_delete(faces_canvas_); faces_canvas_ = nullptr; }
++        Unlock();  // Release before the upstream lvgl_port_deinit below.
++    }
+     if (content_ != nullptr) {
+         lv_obj_del(content_);
+     }
+@@ -309,6 +318,21 @@
+     lv_obj_set_style_anim_duration(chat_message_label_, lv_anim_speed_clamped(60, 300, 60000),
+                                    LV_PART_MAIN);
+ 
++    // Overlay only the lower 48 rows; stock status/notifications remain above.
++    if (width_ == 128 && height_ == 64) {
++        faces_canvas_ = lv_canvas_create(screen);
++        lv_canvas_set_buffer(faces_canvas_, faces_buffer_, 128, 48, LV_COLOR_FORMAT_I1);
++        // Pinned esp_lvgl_port monochrome output: black maps to an illuminated pixel.
++        lv_canvas_set_palette(faces_canvas_, 0, lv_color32_make(255, 255, 255, 255));
++        lv_canvas_set_palette(faces_canvas_, 1, lv_color32_make(0, 0, 0, 255));
++        lv_obj_set_pos(faces_canvas_, 0, 16);
++        lv_obj_add_flag(content_, LV_OBJ_FLAG_HIDDEN);
++        faces_timer_ = lv_timer_create([](lv_timer_t* timer) {
++            static_cast<OledDisplay*>(lv_timer_get_user_data(timer))->UpdateAnimatedFaces();
++        }, animated_faces::FrameDurationMs, this);
++        UpdateAnimatedFaces();
++    }
++
+     low_battery_popup_ = lv_obj_create(screen);
+     lv_obj_set_scrollbar_mode(low_battery_popup_, LV_SCROLLBAR_MODE_OFF);
+     lv_obj_set_size(low_battery_popup_, LV_HOR_RES * 0.9, text_font->line_height * 2);
+@@ -411,6 +435,16 @@
+ }
+ 
+ bool OledDisplay::SetEmotion(const char* emotion) {
++    if (faces_canvas_) {
++        DisplayLockGuard lock(this);
++        if (!lock) return false;
++        faces_live_emotion_ = emotion ? emotion : "neutral";
++        if (!faces_preview_duration_)
++            faces_player_.Select(faces_live_emotion_.c_str(), lv_tick_get());
++        // Unknown labels still display neutral and report that fallback.
++        return emotion && (std::strcmp(emotion, "neutral") == 0 ||
++                           OttoPlayer::Find(emotion) != 0);
++    }
+     auto lvgl_theme = static_cast<LvglTheme*>(current_theme_);
+     const char* utf8 = noto_emoji_get_utf8(emotion);
+     const lv_font_t* emotion_font = lvgl_theme->emoji_font()->font();
+@@ -445,6 +479,15 @@
+ }
+ 
+ void OledDisplay::SetPowerSaveMode(bool on) {
++    {
++        DisplayLockGuard lock(this);
++        if (lock && faces_canvas_) {
++            faces_power_save_ = on;
++            faces_player_.SetVisible(faces_visible_ && !on, lv_tick_get());
++            if (on) lv_timer_pause(faces_timer_);
++            else if (faces_visible_) lv_timer_resume(faces_timer_);
++        }
++    }
+     if (panel_) {
+         Settings settings("wifi", false);
+         if (settings.GetBool("power_save_display_off", false)) {
+@@ -453,3 +496,40 @@
+     }
+     LvglDisplay::SetPowerSaveMode(on);
+ }
++
++void OledDisplay::UpdateAnimatedFaces() {
++    const uint32_t now = lv_tick_get();
++    if (faces_preview_duration_ && now - faces_preview_started_ >= faces_preview_duration_) {
++        faces_preview_duration_ = 0;
++        faces_player_.Select(faces_live_emotion_.c_str(), now);
++    }
++    if (faces_player_.Draw(now, faces_buffer_ + 8, animated_faces::FrameBytes))
++        lv_obj_invalidate(faces_canvas_);
++}
++
++bool OledDisplay::PreviewAnimatedExpression(const char* expression) {
++    DisplayLockGuard lock(this);
++    if (!lock || !faces_canvas_ || !expression) return false;
++    const unsigned id = OttoPlayer::Find(expression);
++    if (id == 0 && std::strcmp(expression, "neutral")) return false;
++    faces_preview_started_ = lv_tick_get();
++    faces_preview_duration_ = 3000;
++    faces_player_.Select(expression, faces_preview_started_, true);
++    return true;
++}
++
++void OledDisplay::SetAnimatedFacesVisible(bool visible) {
++    DisplayLockGuard lock(this);
++    if (!lock || !faces_canvas_) return;
++    faces_visible_ = visible;
++    faces_player_.SetVisible(visible && !faces_power_save_, lv_tick_get());
++    if (visible) {
++        lv_obj_remove_flag(faces_canvas_, LV_OBJ_FLAG_HIDDEN);
++        lv_obj_add_flag(content_, LV_OBJ_FLAG_HIDDEN);
++        if (!faces_power_save_) lv_timer_resume(faces_timer_);
++    } else {
++        lv_obj_add_flag(faces_canvas_, LV_OBJ_FLAG_HIDDEN);
++        lv_obj_remove_flag(content_, LV_OBJ_FLAG_HIDDEN);
++        lv_timer_pause(faces_timer_);
++    }
++}
+--- a/main/CMakeLists.txt
++++ b/main/CMakeLists.txt
+@@ -91,7 +91,9 @@
+ 
+ # Select the board source directory from Kconfig
+ # Set default assets if the board uses partition table V2
+-if(CONFIG_BOARD_TYPE_BREAD_COMPACT_WIFI)
++if(CONFIG_BOARD_TYPE_OLED_FACES_C3)
++    set(BOARD_DIR "oled-faces-c3")
++elseif(CONFIG_BOARD_TYPE_BREAD_COMPACT_WIFI)
+     set(BOARD_DIR "bread-compact-wifi")
+     set(BUILTIN_TEXT_FONT font_noto_sans_basic_14_1)
+     set(BUILTIN_ICON_FONT font_material_symbols_14_1)
+@@ -1197,6 +1199,7 @@
+                     INCLUDE_DIRS ${INCLUDE_DIRS}
+                     WHOLE_ARCHIVE
+                     PRIV_REQUIRES
++                        animated_faces
+                         esp_pm
+                         esp_psram
+                         esp_netif
+--- a/main/Kconfig.projbuild
++++ b/main/Kconfig.projbuild
+@@ -280,6 +280,9 @@
+     config BOARD_TYPE_KEVIN_BOX_2
+         bool "Kevin Box 2"
+         depends on IDF_TARGET_ESP32S3
++    config BOARD_TYPE_OLED_FACES_C3
++        bool "Animated faces C3 example (specific wiring)"
++        depends on IDF_TARGET_ESP32C3
+     config BOARD_TYPE_KEVIN_C3
+         bool "Kevin C3"
+         depends on IDF_TARGET_ESP32C3
+--- /dev/null
++++ b/main/boards/oled-faces-c3/config.h
+@@ -0,0 +1,12 @@
++#pragma once
++#include <driver/gpio.h>
++// This example wiring only. Never substitute these for another board's pins.
++#define AUDIO_INPUT_SAMPLE_RATE 24000
++#define AUDIO_OUTPUT_SAMPLE_RATE 24000
++#define AUDIO_I2S_GPIO_BCLK GPIO_NUM_2
++#define AUDIO_I2S_GPIO_WS GPIO_NUM_1
++#define AUDIO_I2S_GPIO_DOUT GPIO_NUM_3
++#define AUDIO_I2S_GPIO_DIN GPIO_NUM_8
++#define DISPLAY_SDA_PIN GPIO_NUM_20
++#define DISPLAY_SCL_PIN GPIO_NUM_10
++#define BOOT_BUTTON_GPIO GPIO_NUM_9
+--- /dev/null
++++ b/main/boards/oled-faces-c3/config.json
+@@ -0,0 +1,14 @@
++{
++  "type": "oled-faces-c3",
++  "target": "esp32c3",
++  "builds": [
++    {
++      "name": "oled-faces-c3-4mb",
++      "sdkconfig_append": [
++        "CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y",
++        "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"partitions/v2/4m.csv\"",
++        "CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y"
++      ]
++    }
++  ]
++}
+--- /dev/null
++++ b/main/boards/oled-faces-c3/oled_faces_c3.cc
+@@ -0,0 +1,70 @@
++// Derived from XiaoZhi CompactWifiBoard; original MIT notice in third_party/xiaozhi.
++#include "wifi_board.h"
++#include "codecs/no_audio_codec.h"
++#include "display/oled_display.h"
++#include "application.h"
++#include "button.h"
++#include "config.h"
++#include "mcp_server.h"
++#include <driver/i2c_master.h>
++#include <esp_lcd_panel_ops.h>
++#include <esp_lcd_panel_vendor.h>
++
++class OledFacesC3Board : public WifiBoard {
++private:
++    Button boot_button_{BOOT_BUTTON_GPIO};
++    OledDisplay* display_ = nullptr;
++public:
++    OledFacesC3Board() {
++        i2c_master_bus_config_t bus_config = {};
++        bus_config.i2c_port = I2C_NUM_0;
++        bus_config.sda_io_num = DISPLAY_SDA_PIN;
++        bus_config.scl_io_num = DISPLAY_SCL_PIN;
++        bus_config.clk_source = I2C_CLK_SRC_DEFAULT;
++        bus_config.glitch_ignore_cnt = 7;
++        bus_config.flags.enable_internal_pullup = true;
++        i2c_master_bus_handle_t bus = nullptr;
++        ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &bus));
++        esp_lcd_panel_io_i2c_config_t io_config = {};
++        io_config.dev_addr = 0x3c;
++        io_config.scl_speed_hz = 400000;
++        io_config.control_phase_bytes = 1;
++        io_config.dc_bit_offset = 6;
++        io_config.lcd_cmd_bits = 8;
++        io_config.lcd_param_bits = 8;
++        esp_lcd_panel_io_handle_t io = nullptr;
++        ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(bus, &io_config, &io));
++        esp_lcd_panel_ssd1306_config_t ssd_config = {};
++        ssd_config.height = 64;
++        esp_lcd_panel_dev_config_t panel_config = {};
++        panel_config.reset_gpio_num = GPIO_NUM_NC;
++        panel_config.bits_per_pixel = 1;
++        panel_config.vendor_config = &ssd_config;
++        esp_lcd_panel_handle_t panel = nullptr;
++        ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io, &panel_config, &panel));
++        ESP_ERROR_CHECK(esp_lcd_panel_reset(panel));
++        ESP_ERROR_CHECK(esp_lcd_panel_init(panel));
++        ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel, false));
++        ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel, true));
++        display_ = new OledDisplay(io, panel, 128, 64, false, false);
++        boot_button_.OnClick([this]() {
++            auto& app = Application::GetInstance();
++            if (app.GetDeviceState() == kDeviceStateStarting) EnterWifiConfigMode();
++            else app.ToggleChatState();
++        });
++        // XiaoZhi MCP invokes tools on the application task; the display locks LVGL.
++        McpServer::GetInstance().AddTool("self.display.preview_expression",
++            "Preview one animated face for 3 seconds, then restore live emotion.",
++            PropertyList({Property("expression", kPropertyTypeString)}),
++            [this](const PropertyList& properties) -> ReturnValue {
++                return display_->PreviewAnimatedExpression(properties["expression"].value<std::string>().c_str());
++            });
++    }
++    AudioCodec* GetAudioCodec() override {
++        static NoAudioCodecDuplex codec(AUDIO_INPUT_SAMPLE_RATE, AUDIO_OUTPUT_SAMPLE_RATE,
++            AUDIO_I2S_GPIO_BCLK, AUDIO_I2S_GPIO_WS, AUDIO_I2S_GPIO_DOUT, AUDIO_I2S_GPIO_DIN);
++        return &codec;
++    }
++    Display* GetDisplay() override { return display_; }
++};
++DECLARE_BOARD(OledFacesC3Board);
+--- /dev/null
++++ b/main/boards/oled-faces-c3/README.md
+@@ -0,0 +1,8 @@
++# OLED faces C3 example
++
++ESP32-C3, 4 MB flash, no PSRAM; SSD1306 128×64 at I²C address 0x3c.
++Specific wiring: SDA20, SCL10, I²S BCLK2/WS1/speaker DIN3/microphone SD8;
++GPIO9 BOOT/action. Shared-clock 24 kHz upstream NoAudioCodecDuplex.
++Compile tested only in this extracted integration. See the faces repository docs.
++No custom microphone processing, Wi-Fi tuning, queue changes or private diagnostics.
++This board has its own OTA identity; it does not change another board's pins.

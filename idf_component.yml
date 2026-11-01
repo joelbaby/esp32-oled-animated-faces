@@ -1,0 +1,4 @@
+version: "0.1.0-rc3"
+description: "Monochrome OLED derivative port of Otto expressions"
+dependencies:
+  idf: ">=6.0.1"

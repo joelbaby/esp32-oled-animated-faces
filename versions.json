@@ -1,0 +1,82 @@
+{
+  "candidate_version": "0.1.0-rc3",
+  "otto": {
+    "repository": "https://github.com/txp666/otto-emoji-gif-component",
+    "commit": "4a666924e8e4e2bb55fb9d3167211bb936224abf"
+  },
+  "xiaozhi": {
+    "repository": "https://github.com/78/xiaozhi-esp32",
+    "commit": "addb1ed59bd71e09a6a5e0c52ad2f1c474aa8ca1",
+    "version": "2.5.3",
+    "dependencies_lock_sha256": "b3e76b01c7d6fbb0554489c736b17e8c3008fcd1236ab4d541246252e32cf9d9"
+  },
+  "esp_idf": {
+    "repository": "https://github.com/espressif/esp-idf",
+    "commit": "9a97f6c54ec638111ce55cd36581b3c192f15207",
+    "version": "6.1 development snapshot"
+  },
+  "generation": {
+    "python": "3.12.3",
+    "Pillow": "10.2.0",
+    "compiled_include_sha256": "8c1c715efe1b3f975429a24de74f703d91ddd5aa8b64685bbd8750d4295f1678"
+  },
+  "host_adapter_test": {
+    "lvgl_version": "9.5.0",
+    "component_hash": "184e532558c1c45fefed631f3e235423d22582aafb4630f3e8885c35281a49ae",
+    "checksums_sha256": "f1f90c07506098e1c8080a66aacfdca026ad27b45711e2d39a448d2577537d86"
+  },
+  "tested_cold_tool_versions": {
+    "openocd-esp32": [
+      "v0.12.0-esp32-20260831"
+    ],
+    "riscv32-esp-elf": [
+      "esp-15.2.0_20251204"
+    ],
+    "esp-rom-elfs": [
+      "20260528"
+    ],
+    "cmake": [
+      "4.0.3"
+    ],
+    "ninja": [
+      "1.12.1"
+    ],
+    "riscv32-esp-elf-gdb": [
+      "17.1_20260402"
+    ],
+    "esp-clangd": [
+      "esp-21.1.3_20260408"
+    ]
+  },
+  "tested_idf_constraints_sha256": "9500db94c8ef72a523b1ecfb4f9ca5b9f5c069d6cbe179728806ae0c1b0396ac",
+  "decoration_revision": {
+    "status": "Approved in rc2; preserved unchanged in rc3",
+    "expressions": [
+      "surprised",
+      "confused",
+      "delicious",
+      "angry"
+    ],
+    "source_frames": 884,
+    "unique_frames": 691,
+    "compressed_payload_bytes": 180533,
+    "frame_offset_bytes": 2768,
+    "expression_index_bytes": 1768,
+    "worst_compressed_frame_bytes": 501,
+    "eye_only_baseline_sha256_file": "tests/decoration-baseline.json"
+  },
+  "embarrassed_revision": {
+    "status": "User approved; promoted to source candidate rc3; no firmware build or flash",
+    "expressions": [
+      "embarrassed"
+    ],
+    "source_frames": 884,
+    "unchanged_other_expression_frames": 840,
+    "unique_frames": 691,
+    "compressed_payload_bytes": 183400,
+    "frame_offset_bytes": 2768,
+    "expression_index_bytes": 1768,
+    "worst_compressed_frame_bytes": 501,
+    "baseline": "tests/decoration-rc2-baseline.json"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "main/display/oled_display.h": {
+    "before": "f8791cc1a95349c49a59dc65c3ec14d8679a155585d468c980ff276c954c0027",
+    "after": "3a61fc2c8063e73c67792c3c7d332a4d155e9dc015de3e026f376e786d41e8f7"
+  },
+  "main/display/oled_display.cc": {
+    "before": "2cbcfdf7ff6f43645da65b0184121f358a38a2faf4277654854bd0d313e8b619",
+    "after": "9478fedba3524b1615dfd1539ba140cd22bbe97516ad9efff593bee2b6f972e7"
+  },
+  "main/CMakeLists.txt": {
+    "before": "df37a0a9937780223f972e1a1884d01118b870a63fb6c9ced6e26116b93d5426",
+    "after": "2b59798a153d3e160a09cb679fafb19fca61120bce23245c17666e5777a8329b"
+  },
+  "main/Kconfig.projbuild": {
+    "before": "0d453e08ca6dd8ff21f2c5b94677290f1a8d1ab46288c6856f4f4f2a6d101a2e",
+    "after": "93e1482d5f4d5802966de0e9e8966cc0ac1ccdec72f049a7100c095f2ab7b8e5"
+  },
+  "main/boards/oled-faces-c3/config.h": {
+    "before": null,
+    "after": "5a75ee838ced310ebeeeb64b58b89943f49ff9b51b8cb046acca2bebdeef89a2"
+  },
+  "main/boards/oled-faces-c3/config.json": {
+    "before": null,
+    "after": "388c8ac3a931ff3361b5d4698c91f50d66c36ed99abce5eb6b9d59b2bd1ed910"
+  },
+  "main/boards/oled-faces-c3/oled_faces_c3.cc": {
+    "before": null,
+    "after": "eaa0e52ecf11c204c5387c4de82ffd396d8fada56df827c1564840ee99ac1336"
+  },
+  "main/boards/oled-faces-c3/README.md": {
+    "before": null,
+    "after": "d19bd85cfd23a629981a72ad8dc2aa7feb09d9a2d61356d9f70dcf0557c85f85"
+  }
+}

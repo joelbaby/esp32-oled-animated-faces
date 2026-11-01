@@ -1,0 +1,11 @@
+menu "Animated faces display wiring"
+config FACES_SDA
+    int "OLED SDA GPIO (example hardware only)"
+    default 20
+config FACES_SCL
+    int "OLED SCL GPIO (example hardware only)"
+    default 10
+config FACES_I2C_ADDRESS
+    hex "OLED I2C address"
+    default 0x3c
+endmenu

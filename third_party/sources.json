@@ -1,0 +1,11 @@
+{
+  "otto": {
+    "repository": "https://github.com/txp666/otto-emoji-gif-component",
+    "commit": "4a666924e8e4e2bb55fb9d3167211bb936224abf",
+    "original_files_sha256": {
+      "tools/generate_emojis.py": "40dd14781fda254184b7f7d139b2abc803bf9efb09f7555ee0f6b174a0ddad58",
+      "LICENSE": "bd806361232a065ead834a53a04b34ba51eacb257ccdb21a6506f0e8738930d8"
+    },
+    "adaptations": "Unmodified original generator executes offline; documented layout adapter generates independent1bit PackBits frames; no GIF/Arduino runtime."
+  }
+}

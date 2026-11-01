@@ -1,0 +1,90 @@
+{
+  "revision": "rc2; approved first4 decoration revisions",
+  "compiled_include_sha256": "84b22956e163bac21a471abd359900056280d1cf606ef69db6c205e85ea65a34",
+  "expressions": {
+    "neutral": {
+      "frames": 50,
+      "full_rasters_sha256": "917130ca9a8b2125ab6f4bec640616e270c1f40578821bd6e9387d116ab4342e"
+    },
+    "happy": {
+      "frames": 40,
+      "full_rasters_sha256": "a126efdb59bdd5e64bca87163b8b84665dd61e8ecf7f0a0f2e4f15c88d54a52b"
+    },
+    "laughing": {
+      "frames": 40,
+      "full_rasters_sha256": "146f65b507c918484af281c67e3f15fb7ec85c99ab12e2ee2579b92216569144"
+    },
+    "funny": {
+      "frames": 40,
+      "full_rasters_sha256": "839892ce8a573e6a0cda9e987dc16e6310c80f20f3fb27be050cbd58261d565b"
+    },
+    "sad": {
+      "frames": 44,
+      "full_rasters_sha256": "e9e16a12cf7d606e40bf9bd6e923c47acd911355d2d6721357cde45243539d41"
+    },
+    "angry": {
+      "frames": 40,
+      "full_rasters_sha256": "30d1afbe9584ba8f183c208e947f20ef15009dcb40090fa0d87ab2dc4afaa1ff"
+    },
+    "crying": {
+      "frames": 40,
+      "full_rasters_sha256": "58aa22d316bbfdcd4701454c9c814ff70333eade2d5e60aa59c40e74eba807dd"
+    },
+    "loving": {
+      "frames": 40,
+      "full_rasters_sha256": "bc4272af2353800277232f916eff5fb36f280bbee8bfcf3a8db0a57e4adc5b6c"
+    },
+    "embarrassed": {
+      "frames": 44,
+      "full_rasters_sha256": "a7ef308ec598e17607795ce989545076a582124f19685720dd14204a7a232850"
+    },
+    "surprised": {
+      "frames": 40,
+      "full_rasters_sha256": "70fe62e6d596c1daefe5f3c1e102511cf1aa8561d5a64acbf7566f7655c16479"
+    },
+    "shocked": {
+      "frames": 40,
+      "full_rasters_sha256": "a3fe877697f7e3e19a04833f18998117573477b162a4921d5bb0c8a42bb874f3"
+    },
+    "thinking": {
+      "frames": 44,
+      "full_rasters_sha256": "9b54163b6cc70e003f0e1ef863d1ea7f37b2ca4f8c7d3c4e44b4947eba422558"
+    },
+    "winking": {
+      "frames": 40,
+      "full_rasters_sha256": "f440ff9d35c5649888cb27515bd2e7480176064647aa572ea1b6d3453804d87a"
+    },
+    "cool": {
+      "frames": 44,
+      "full_rasters_sha256": "68e919810563f81b0d3fe2f322bb492e3453ef7f12ae47d5197a89a9aecf06ca"
+    },
+    "relaxed": {
+      "frames": 44,
+      "full_rasters_sha256": "d1baaa07ed45f9ba674ec9e65e7eb9352191aaea67e52b6b2423653fb9e6181a"
+    },
+    "delicious": {
+      "frames": 40,
+      "full_rasters_sha256": "6c0b66bfb662f63a6553fda15c0bccb63943e8bddb8a3c8c2222db025c472e9c"
+    },
+    "kissy": {
+      "frames": 40,
+      "full_rasters_sha256": "478822818ce56edf0954e553a65c615b043efaadd7b0dc126e28b909c91409e0"
+    },
+    "confident": {
+      "frames": 44,
+      "full_rasters_sha256": "eda46f3f40458b3420d441e2f5486c0055cc3f9a085c3f486886355ef17a9d6b"
+    },
+    "sleepy": {
+      "frames": 50,
+      "full_rasters_sha256": "2e83ae90682e6eb388bf8d4c3fe8c98381751ee2d040508e5f17f44946c1ed16"
+    },
+    "silly": {
+      "frames": 40,
+      "full_rasters_sha256": "9dc0e37697db2ef67315c0fbf7448c47f27146c5b9f06d5a483aab20c6ba0911"
+    },
+    "confused": {
+      "frames": 40,
+      "full_rasters_sha256": "98f9dcebbdb630529fead975f1b9d2cc5dbe9a605c2f224ed78b769898b15720"
+    }
+  }
+}
