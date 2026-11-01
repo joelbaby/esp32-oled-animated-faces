@@ -8,8 +8,6 @@ compression, lightweight C++ player and source integration examples.
 
 ![21 actual generated OLED expressions](docs/images/expressions.gif)
 
-*Preview rendered from the included rc3 assets; not a hardware photo. Rc3 firmware build and hardware acceptance remain pending.*
-
 Use it for ESP32 animated faces, OLED animated eyes, an ESP32 emoji display or robot
 facial expressions. Each animation occupies **128×48 pixels below a 16-pixel status
 bar**. Eyes retain their proportions; decorative elements are repositioned for the
@@ -70,17 +68,10 @@ See [integration handoff](docs/INTEGRATION-HANDOFF.md) before adopting it into a
 | This extracted release | Rc3 passes host frame/decoder/regeneration checks. The unchanged adapter and build path passed rendering checks and cold builds on the preceding candidate; rc3 firmware rebuild and hardware acceptance remain pending. See [validation](docs/VALIDATION.md). |
 | XiaoZhi source | `78/xiaozhi-esp32` at `addb1ed59bd71e09a6a5e0c52ad2f1c474aa8ca1` (2.5.3). |
 | ESP-IDF | `9a97f6c54ec638111ce55cd36581b3c192f15207` (6.1 development snapshot); exact component versions in the supplied lock. |
-| Host | Linux Mint 22.3 x86_64 (Ubuntu 24.04 base), Python 3.12.3; Pillow 10.2.0 for offline generation only. |
 
 Other ESP32 boards, SH1106 controllers, 128×32 displays, Arduino, Windows and macOS
 are **not verified by this candidate**. The C++ player is driver-independent, but
 that alone does not establish hardware compatibility.
-
-For the recommended C3 example only: SSD1306 SDA GPIO20 / SCL GPIO10, address 0x3c;
-shared I²S BCLK2 / WS1 / amplifier DIN3 / microphone SD8; BOOT/action GPIO9. You need
-that exact wiring, a data-capable USB cable and 3.3 V-compatible devices. **These
-pins are not universal.** Keep your existing board selection and pins when adapting
-another board; see the separate section in the XiaoZhi guide.
 
 Before starting, you need Git, Python, a C++ compiler, CMake/Ninja and the pinned
 ESP-IDF toolchain. The guides include host setup, exact build commands, expected
@@ -102,9 +93,7 @@ needed for first-time dependencies.
 - Standalone driver additionally uses a 1,024-byte SSD1306 page-order screen buffer;
   XiaoZhi adds an LVGL canvas/palette/timer. These are adapter costs, not core claims.
 
-These are module resource counts, **not total firmware flash/RAM usage**. This
-project does not tune audio, Wi-Fi, microphone processing or provisioning. It does
-not claim to fix audio gaps or speaking stalls observed in the separate firmware.
+These are module resource counts, **not total firmware flash/RAM usage**.
 
 ## For developers
 
