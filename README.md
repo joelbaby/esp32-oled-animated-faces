@@ -15,6 +15,24 @@ facial expressions. Each animation occupies **128×48 pixels below a 16-pixel st
 bar**. Eyes retain their proportions; decorative elements are repositioned for the
 wide OLED layout. See [attribution and artwork provenance](docs/PROVENANCE.md).
 
+## Why this exists
+
+XiaoZhi.me can send emotion tags during a conversation. This project gives the
+21 standard XiaoZhi emotion labels corresponding animated OLED expressions, so
+more of the assistant's expression comes through on a small robot face.
+
+To encourage more expressive output, add this instruction to **Role Introduction**
+on your XiaoZhi configuration page, alongside your existing role instructions:
+
+```text
+## use emote tags
+Remember to send system emote tags during your output so that our output is as expressive as possible. Emotions can change at the start, middle or end of a sentence.
+```
+
+The firmware reacts to the emotion tags the service sends; this prompt encourages
+that behavior but does not guarantee a tag for every sentence. See the
+[XiaoZhi guide](docs/XIAOZHI.md#encourage-expressive-emotion-tags) for setup details.
+
 ## Space for your status bar
 
 The faces use **only the bottom 48 rows** of a 128×64 display. The top **16 rows

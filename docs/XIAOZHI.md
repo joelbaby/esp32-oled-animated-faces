@@ -115,6 +115,21 @@ sleep/wake, normal conversation, provisioning and BOOT recovery before accepting
 a physical installation. The standalone demo cycles all expressions automatically.
 Audio gaps/stalls from the separate firmware are not solved by this module.
 
+### Encourage expressive emotion tags
+
+On your XiaoZhi configuration page, append the following to **Role Introduction**
+without replacing the rest of your character/role instructions, then save:
+
+```text
+## use emote tags
+Remember to send system emote tags during your output so that our output is as expressive as possible. Emotions can change at the start, middle or end of a sentence.
+```
+
+This is a suggested role instruction, not firmware code. The 21 supported names
+are listed above; unknown labels fall back to neutral. The service/model controls
+which emotion tags actually arrive, so the instruction encourages expressive
+output rather than guaranteeing tag placement or frequency.
+
 ## Existing upstream board (separate adaptation)
 
 Use a **new clean checkout** and the same installer, then keep your existing board
